@@ -27,6 +27,7 @@ and merges. Nothing merges itself. See [docs/human-in-the-loop.md](docs/human-in
 
 ## Documentation
 
+- [docs/how-it-works.md](docs/how-it-works.md) — the full lifecycle: install, credentials, what runs on each command, scheduling, how the knowledge graph forms
 - [docs/architecture.md](docs/architecture.md) — system overview and core principles
 - [docs/jira-structure.md](docs/jira-structure.md) — issue types, the intake form, labels/flags
 - [docs/knowledge-graph.md](docs/knowledge-graph.md) — what it is, how it's built, how it's used
@@ -64,7 +65,7 @@ cd conductor
 npm install
 cp .conductor/config.example.yml .conductor/config.yml   # edit: your repos, Jira JQL, cost ceilings
 cp -r .conductor/kg-source.example .conductor/kg-source   # edit: your teams, principles, AWS/MCP/repos
-cp .env.example .env                              # JIRA_EMAIL + JIRA_API_TOKEN, see docs/testing.md
+cp .env.example .env                              # JIRA_EMAIL + JIRA_API_TOKEN — auto-loaded, see docs/how-it-works.md
 npm run build
 npm link                                          # or: node dist/cli.js
 conductor sync

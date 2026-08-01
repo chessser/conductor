@@ -1,6 +1,15 @@
 # Architecture
 
+This doc covers the system's shape and principles. For a step-by-step walk
+through what actually happens when you run each command, where credentials
+live, and how the knowledge graph gets built, see
+[how-it-works.md](how-it-works.md).
+
 ## System overview
+
+Every box below is produced by a one-shot CLI invocation, not a running
+service — there is no daemon and nothing syncs on its own. See
+[how-it-works.md](how-it-works.md#the-mental-model-a-cli-not-a-service).
 
 ```
 Jira (source of truth)
@@ -72,7 +81,8 @@ conductor mr-poll — labels ready-for-review when CI is green, flips Jira statu
 
 | Path | Responsibility |
 |---|---|
-| `src/cli.ts` | Commander entrypoint, registers every subcommand |
+| `src/cli.ts` | Commander entrypoint, registers every subcommand, loads `.env` before any command runs |
+| `src/lib/env.ts` | Minimal `.env` parser/loader — never overwrites an already-set variable |
 | `src/commands/*.ts` | One file per CLI verb — thin, delegates to `src/lib/*` |
 | `src/lib/config.ts` | Loads and validates `.conductor/config.yml` (the repo registry, §5) |
 | `src/lib/dag.ts` | Pure dependency-graph resolution for ordered tasks |
