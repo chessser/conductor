@@ -36,6 +36,7 @@ async function readBody(req: IncomingMessage): Promise<unknown> {
 export async function startFakeJiraServer(options: FakeJiraServerOptions = {}): Promise<FakeJiraServer> {
   const issues = new Map<string, JiraIssueJson>((options.issues ?? []).map((i) => [i.key, i]));
   const requests: FakeJiraServer['requests'] = [];
+  let nextIssueNumber = issues.size + 1;
 
   const server: Server = createServer((req, res) => {
     void (async () => {
@@ -44,6 +45,27 @@ export async function startFakeJiraServer(options: FakeJiraServerOptions = {}): 
       requests.push({ method: req.method ?? 'GET', path: url.pathname, body });
 
       const issueMatch = url.pathname.match(/^\/rest\/api\/3\/issue\/([^/]+)(\/comment)?$/);
+
+      if (req.method === 'POST' && url.pathname === '/rest/api/3/issue') {
+        const fields = (body as { fields?: Record<string, unknown> } | undefined)?.fields ?? {};
+        const project = fields.project as { key?: string } | undefined;
+        const key = `${project?.key ?? 'FAKE'}-${nextIssueNumber++}`;
+        const issueTypeName = (fields.issuetype as { name?: string } | undefined)?.name;
+        const description = fields.description as string | undefined;
+        const newIssue: JiraIssueJson = {
+          key,
+          fields: {
+            summary: (fields.summary as string) ?? '',
+            ...(description !== undefined && { description }),
+            ...(issueTypeName !== undefined && { issuetype: { name: issueTypeName } }),
+            labels: (fields.labels as string[]) ?? [],
+          },
+        };
+        issues.set(key, newIssue);
+        res.writeHead(201, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ key }));
+        return;
+      }
 
       if (req.method === 'POST' && url.pathname === '/rest/api/3/search/jql') {
         res.writeHead(200, { 'content-type': 'application/json' });

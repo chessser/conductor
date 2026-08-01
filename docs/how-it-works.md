@@ -1,7 +1,8 @@
 # How Conductor works, end to end
 
 The other docs describe individual pieces (architecture, Jira structure,
-the knowledge-graph source schema). This one walks through the whole
+the knowledge-graph source schema, the [MCP tool reference](mcp-server.md)).
+This one walks through the whole
 lifecycle in order: what you install, where your credentials live, what
 actually happens when you type `conductor <command>`, whether anything
 runs in the background, and how you'd stand up your own knowledge graph
@@ -137,21 +138,40 @@ Also **zero network calls**, but does touch the local filesystem/PATH:
 4. Prints gaps, exits non-zero if anything's missing (CI/pre-flight-check
    friendly), zero otherwise.
 
-### `conductor kg update` / `kg summary` / `context` — not implemented yet
+### `conductor mcp-server`
 
-These are the commands that will actually build the graph DB (see
-[How the knowledge graph gets formed](#how-the-knowledge-graph-gets-formed)
-below) — today they throw a clear "not implemented" error pointing at
-[knowledge-graph.md](knowledge-graph.md) and
-[build-order.md](build-order.md). Nothing about their *design* is
-speculative — the source data (`kg-source`) and the live-data client
-(`JiraClient`) they'll consume already exist and are tested; what's
-missing is the graph-DB write step itself.
+The command that actually matters most. Unlike every other command above,
+this one **doesn't exit** — it's meant to be launched as a subprocess by
+an MCP client (Claude Code) and stays alive for the life of that
+connection:
 
-### `conductor pair` / `conductor run` / `conductor mr-poll` / `conductor triage` — not implemented yet
+1. Loads `.conductor/kg-source/` the same way `kg validate` does.
+2. Picks the first declared `jira_projects[]` entry across any team to get
+   a Jira base URL, and requires `JIRA_EMAIL`/`JIRA_API_TOKEN` — same
+   credential path as `sync`.
+3. Builds a `JiraClient` and a `WriteGuard` scoped to the union of every
+   team's declared project keys (`allowedProjectKeys`, `src/lib/kg-query.ts`).
+4. Registers nine tools (`buildMcpServer`, `src/mcp/server.ts`) — three
+   read-only knowledge tools, two Jira read tools, three Jira
+   propose-a-write tools, and one confirm tool. Full reference:
+   [mcp-server.md](mcp-server.md).
+5. Connects a `StdioServerTransport` and blocks — from here on, every
+   tool call is a request/response over stdin/stdout initiated by the MCP
+   client, not by anything this process does on its own. No polling, no
+   timers, nothing running when a tool isn't actively being called.
+6. Exits when Claude Code closes the connection.
 
-Same status: designed, documented, throwing a clear error. See
-[build-order.md](build-order.md) for the intended sequence.
+Nothing here queries a graph database — `kg_get_team` and
+`kg_search_principles` re-read and re-resolve `.conductor/kg-source/`
+in-process on every call, the same pure logic `conductor kg validate`
+uses. See [How the knowledge graph gets formed](#how-the-knowledge-graph-gets-formed).
+
+### `conductor kg update` / `kg summary` — not implemented yet
+
+These would build a persistent graph store for when reparsing `kg-source`
+on every call stops being fast enough — see
+[knowledge-graph.md](knowledge-graph.md), which is explicit that this
+hasn't been needed yet at the scale this project has been used at.
 
 ## Scheduling, not a background daemon
 
@@ -185,57 +205,49 @@ Conductor itself never installs a scheduled job on your behalf.
 
 ## How the knowledge graph gets formed
 
-The graph (once `kg update` is implemented) is built from **two
-categories of input**, merged into one embedded graph DB
-(`.conductor/kg/`, gitignored, rebuilt from scratch each run — see
-[knowledge-graph.md](knowledge-graph.md) for the full node/edge schema):
+Today, "forming the graph" happens **fresh, in memory, on every MCP tool
+call** — there's no persistent store yet:
 
 ```
-.conductor/kg-source/            live Jira/GitLab/GitHub APIs
-  root.yml                       (scoped by each team's
-  teams/<id>.yml                  resolved jira_projects[].jql
-       │                          and gitlab_repos/github_repos)
-       │  declared nodes:                │  live nodes:
-       │  Team, Principle,               │  JiraIssue, Repo,
-       │  AwsAccount, McpServer,         │  File/Module, Person
-       │  ConfluenceSpace, JiraProject   │
-       └────────────────┬────────────────┘
-                         ▼
-              conductor kg update
-              (re-derives all edges
-               from scratch, idempotent)
-                         ▼
-              .conductor/kg/ (embedded graph DB)
-                         ▼
-         conductor context <issue-key>
-         (previews the subgraph an agent
-          would see before dispatch)
+.conductor/kg-source/                    Claude Code
+  root.yml                                    │  "what's Payments'
+  teams/<id>.yml                               │   branch strategy?"
+       │                                       ▼
+       │ loadKnowledgeGraphSource()   kg_get_team({teamId:"payments"})
+       │ (org→team→user principles,             │
+       │  additive shared resources)            │
+       ▼                                        │
+  KnowledgeGraphSource (in-memory) ◄─────────────┘
+       │
+       ▼
+  ResolvedTeam { principles: {org,team,users}, waysOfWorking,
+                 confluenceSpaces, jiraProjects, awsAccounts, ... }
+       │
+       ▼
+  returned as this one tool call's result — nothing cached, nothing
+  written to disk, next call re-reads the YAML from scratch
 ```
 
-Step by step, what `kg update` is designed to do (see
-[knowledge-graph.md](knowledge-graph.md#conductor-kg-update) for the
-authoritative version):
+Step by step (`loadKnowledgeGraphSource`, `src/lib/kg-source.ts`, and the
+query functions in `src/lib/kg-query.ts` that `src/mcp/server.ts`'s tools
+call):
 
-1. **Load the declared layer.** `loadKnowledgeGraphSource()` reads
-   `.conductor/kg-source/`, resolving org → team → user principle
-   inheritance and merging shared resources into each team (already
-   implemented and tested — this part of the pipeline is real today,
-   just not yet wired to a graph DB write).
-2. **Pull the live layer, per team.** For each `ResolvedTeam`, query its
-   `jira_projects[].jql` (via `JiraClient.search`, already implemented)
-   and its `gitlab_repos`/`github_repos` (via the future `ScmClient` —
-   not implemented yet, see [build-order.md](build-order.md)).
-3. **Write nodes and edges.** Every declared and live entity becomes a
-   node; relationships (`Team -[OWNS]-> Repo`, `JiraIssue -[TARGETS]->
-   Repo`, `Principle -[APPLIES_TO]-> Team`, etc. — full list in
-   [knowledge-graph.md](knowledge-graph.md)) become edges. This is a full
-   rebuild every time, not an incremental patch — determinism over
-   incremental-merge complexity.
-4. **Serve context on demand.** `conductor context <issue-key>` (not yet
-   implemented) will serialize the relevant subgraph — the target repo,
-   its recent MRs/PRs, related past issues, module ownership, and the
-   principles that apply to that team — into what an agent actually sees
-   before `conductor pair`/`conductor run` dispatch it.
+1. **Parse `root.yml` and every `teams/<id>.yml` it references.**
+2. **Resolve inheritance**: each team gets org-wide shared resources
+   merged with its own (team wins on an id collision), and its principles
+   kept structured as `{ org, team, users }` rather than flattened.
+3. **Return exactly the slice a tool asked for** — `kg_get_team` returns
+   one team, `kg_search_principles` returns only matches, `jira_search` is
+   bounded by the JQL and project you gave it. Nothing serializes "the
+   whole graph" into a response; see the credit-friendly discussion this
+   doc's design conversation settled on.
+
+Once/if a real graph store is built (see
+[knowledge-graph.md](knowledge-graph.md) — Graphiti is the leading
+candidate), this same two-layer shape holds: a declared layer from
+`kg-source` and a live layer from Jira/GitLab/GitHub, merged and re-derived
+from scratch on each rebuild rather than patched incrementally. What
+changes is *how fast* a query answers, not what gets returned.
 
 ## How you'd form your own knowledge graph
 
@@ -259,12 +271,13 @@ authoritative version):
    ```
    catches missing MCP-server env vars and missing binaries immediately,
    before those failures surface confusingly mid-`kg update` later.
-5. **(Once implemented) build the graph:**
-   ```bash
-   conductor kg update
-   conductor kg summary   # sanity-check what got indexed
-   ```
+5. **Connect Claude Code to it.** Add `conductor mcp-server` to `.mcp.json`
+   ([mcp-server.md](mcp-server.md)'s connection example) and start asking
+   questions — `kg_get_team`/`kg_search_principles` read your new files
+   immediately, no build/index step required.
 6. **Iterate.** Add a repo, add a team, add a principle — it's all just
-   editing YAML and re-running `kg validate`/`kg update`. Nothing here
-   requires touching code; see [knowledge-graph-source.md](knowledge-graph-source.md)
-   for the full field reference.
+   editing YAML and re-running `conductor kg validate`. Nothing here
+   requires touching code, and nothing needs restarting — the next MCP
+   tool call re-reads the files fresh; see
+   [knowledge-graph-source.md](knowledge-graph-source.md) for the full
+   field reference.

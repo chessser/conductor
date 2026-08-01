@@ -17,6 +17,16 @@ export interface JiraClient {
   setStatus(key: string, status: TaskStatus): Promise<void>;
   /** Append a comment, e.g. linking the resulting MR/PR. */
   comment(key: string, body: string): Promise<void>;
+  /** Creates a new issue. No delete counterpart exists on this interface — see docs/mcp-server.md. */
+  createIssue(input: CreateIssueInput): Promise<ConductorTask>;
+}
+
+export interface CreateIssueInput {
+  projectKey: string;
+  issueType: string;
+  summary: string;
+  description?: string;
+  labels?: string[];
 }
 
 export interface JiraClientOptions {
@@ -45,7 +55,7 @@ async function requestJson<T>(fetchImpl: typeof fetch, url: string, init: Reques
   return (await res.json()) as T;
 }
 
-const ISSUE_FIELDS = ['summary', 'description', 'issuetype', 'labels', 'issuelinks'];
+const ISSUE_FIELDS = ['summary', 'description', 'issuetype', 'labels', 'issuelinks', 'assignee'];
 
 /**
  * REST client against Jira Cloud API v3. Requires an API token — see
@@ -63,6 +73,16 @@ export function createJiraClient(options: JiraClientOptions): JiraClient {
     Accept: 'application/json',
   };
 
+  async function fetchIssue(key: string): Promise<ConductorTask> {
+    const fieldsQuery = ISSUE_FIELDS.join(',');
+    const issue = await requestJson<JiraIssueJson>(
+      fetchImpl,
+      `${base}/rest/api/3/issue/${encodeURIComponent(key)}?fields=${fieldsQuery}`,
+      { method: 'GET', headers },
+    );
+    return mapJiraIssueToTask(issue);
+  }
+
   return {
     async search(jql: string): Promise<ConductorTask[]> {
       const data = await requestJson<JiraSearchResponse>(fetchImpl, `${base}/rest/api/3/search/jql`, {
@@ -73,15 +93,7 @@ export function createJiraClient(options: JiraClientOptions): JiraClient {
       return data.issues.map(mapJiraIssueToTask);
     },
 
-    async get(key: string): Promise<ConductorTask> {
-      const fieldsQuery = ISSUE_FIELDS.join(',');
-      const issue = await requestJson<JiraIssueJson>(
-        fetchImpl,
-        `${base}/rest/api/3/issue/${encodeURIComponent(key)}?fields=${fieldsQuery}`,
-        { method: 'GET', headers },
-      );
-      return mapJiraIssueToTask(issue);
-    },
+    get: fetchIssue,
 
     async setStatus(key: string, status: TaskStatus): Promise<void> {
       const current = await requestJson<JiraIssueJson>(
@@ -109,6 +121,23 @@ export function createJiraClient(options: JiraClientOptions): JiraClient {
           },
         }),
       });
+    },
+
+    async createIssue(input: CreateIssueInput): Promise<ConductorTask> {
+      const created = await requestJson<{ key: string }>(fetchImpl, `${base}/rest/api/3/issue`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          fields: {
+            project: { key: input.projectKey },
+            issuetype: { name: input.issueType },
+            summary: input.summary,
+            description: input.description,
+            labels: input.labels ?? [],
+          },
+        }),
+      });
+      return fetchIssue(created.key);
     },
   };
 }

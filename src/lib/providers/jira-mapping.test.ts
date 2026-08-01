@@ -80,3 +80,18 @@ test('replaceStatusLabel adds the status label when none was present', () => {
   const result = replaceStatusLabel(['agent-type/claude'], 'ready');
   assert.deepEqual(result.sort(), ['agent-type/claude', 'status/ready'].sort());
 });
+
+test('maps assignee email when present', () => {
+  const task = mapJiraIssueToTask(issue({ assignee: { emailAddress: 'alice@example.com' } }));
+  assert.equal(task.assignee, 'alice@example.com');
+});
+
+test('falls back to accountId when no email is present', () => {
+  const task = mapJiraIssueToTask(issue({ assignee: { accountId: 'abc123' } }));
+  assert.equal(task.assignee, 'abc123');
+});
+
+test('leaves assignee unset when the issue is unassigned', () => {
+  const task = mapJiraIssueToTask(issue({ assignee: null }));
+  assert.equal('assignee' in task, false);
+});

@@ -28,6 +28,7 @@ export interface JiraIssueJson {
     description?: string | null;
     issuetype?: { name?: string };
     labels?: string[];
+    assignee?: { emailAddress?: string; accountId?: string } | null;
     issuelinks?: Array<{
       type: { inward: string; outward: string };
       inwardIssue?: { key: string };
@@ -76,6 +77,7 @@ export function mapJiraIssueToTask(issue: JiraIssueJson): ConductorTask {
 
   const agentType = labelValue(labels, AGENT_TYPE_LABEL_PREFIX, AGENT_TYPES);
   const mode = labelValue(labels, MODE_LABEL_PREFIX, DISPATCH_MODES);
+  const assignee = issue.fields.assignee?.emailAddress ?? issue.fields.assignee?.accountId;
 
   return {
     key: issue.key,
@@ -89,6 +91,7 @@ export function mapJiraIssueToTask(issue: JiraIssueJson): ConductorTask {
       ...(mode !== undefined && { mode }),
     },
     dependsOn: dependsOnFromLinks(issue.fields.issuelinks),
+    ...(assignee !== undefined && { assignee }),
   };
 }
 
