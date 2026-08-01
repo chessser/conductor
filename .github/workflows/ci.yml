@@ -5,16 +5,24 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: macos-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm install
+      # npm ci, not npm install: fails closed if package.json and
+      # package-lock.json drift instead of silently re-resolving, and
+      # never writes back to the lockfile in CI.
+      - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test

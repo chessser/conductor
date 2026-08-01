@@ -4,6 +4,7 @@
   "description": "Local MCP server giving Claude Code on-demand access to your team's knowledge (principles, ways of working, repos, infra) and guarded read/write access to Jira.",
   "type": "module",
   "license": "MIT",
+  "private": true,
   "bin": {
     "conductor": "./dist/cli.js"
   },
@@ -15,7 +16,8 @@
     "dev": "tsx src/cli.ts",
     "test": "node --test --experimental-strip-types --test-reporter=spec 'src/**/*.test.ts'",
     "lint": "eslint src",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
