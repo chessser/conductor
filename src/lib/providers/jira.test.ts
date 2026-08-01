@@ -86,3 +86,25 @@ test('comment posts an ADF document containing the given text', async () => {
     assert.equal(text, 'Opened https://example.com/mr/1');
   });
 });
+
+test('createIssue posts fields and returns the mapped created issue', async () => {
+  await withServer({ issues: [] }, async (server) => {
+    const client = clientFor(server);
+    const task = await client.createIssue({
+      projectKey: 'PROJ',
+      issueType: 'Conductor Task',
+      summary: 'New task from MCP',
+      description: 'body',
+      labels: ['status/draft'],
+    });
+
+    assert.equal(task.key, 'PROJ-1');
+    assert.equal(task.title, 'New task from MCP');
+    assert.equal(task.labels.status, 'draft');
+
+    const createReq = server.requests.find((r) => r.method === 'POST' && r.path === '/rest/api/3/issue');
+    assert.ok(createReq);
+    const fields = (createReq?.body as { fields: { project: { key: string } } }).fields;
+    assert.equal(fields.project.key, 'PROJ');
+  });
+});

@@ -41,6 +41,8 @@ export interface ConductorTask {
   dependsOn: string[];
   prUrl?: string;
   branch?: string;
+  /** Assignee's email/account id, if any — used by the MCP write-guard's assignee-mismatch warning. */
+  assignee?: string;
 }
 
 /**

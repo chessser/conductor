@@ -1,20 +1,32 @@
 # Knowledge graph
 
-## What it is
+**Status: not built yet.** Today, `conductor mcp-server`'s knowledge tools
+(`kg_list_teams`, `kg_get_team`, `kg_search_principles` —
+[mcp-server.md](mcp-server.md)) query `.conductor/kg-source/` directly, in
+memory, on every call. There's no persistent graph store because at the
+scale of a handful of teams and small YAML files, reparsing is fast and a
+store would be pure overhead. This doc describes the design for *if/when*
+that stops being true.
+
+## What it would be
 
 A local, per-user, deterministically-rebuilt graph stored under
-`.conductor/kg/` (gitignored), built by `conductor kg update`. Not synced or shared
-between users — the *generation logic* lives in this repo and is identical
-for everyone; the *output* is not shared, because it's scoped to whatever
-the invoking user's Jira/GitLab/GitHub tokens can actually see. Two
-engineers running `conductor kg update` get graphs with the same schema, built
-by the same code, but different content.
+`.conductor/kg/` (gitignored). Not synced or shared between users — the
+*generation logic* lives in this repo and is identical for everyone; the
+*output* is not shared, because it's scoped to whatever the invoking
+user's Jira/GitLab/GitHub tokens can actually see. Two engineers building
+this graph get the same schema, built by the same code, but different
+content.
 
-Storage: an embedded graph-capable store (e.g. [Kuzu](https://kuzudb.com/),
-an embedded property-graph DB with a TypeScript client, no server process
-required) or, if that proves too heavy, a SQLite schema modeling
-nodes/edges explicitly. Either is fine as long as it's embedded, file-based,
-and gitignored — no shared infrastructure.
+Storage: [Graphiti](https://github.com/getzep/graphiti) — a knowledge
+graph library built specifically for LLM agents to query incrementally
+and cheaply, rather than a generic graph DB an agent has to be told how to
+use efficiently. This is a deliberate change from an earlier version of
+this doc that suggested [Kuzu](https://kuzudb.com/) — Graphiti's
+incremental-update and low-token-retrieval design fits this project's
+"credit-friendly" goal (serve small, scoped slices, never the whole graph)
+directly, where a generic embedded graph DB would need that behavior
+built on top of it by hand.
 
 ## Schema
 
@@ -49,7 +61,7 @@ Edges:
 - `Person -[MEMBER_OF]-> Team`
 - `Principle -[APPLIES_TO]-> Team` (org-level principles apply to every `Team` node)
 
-## `conductor kg update`
+## `conductor kg update` (not implemented yet)
 
 ```
 conductor kg update [--repos=a,b,c] [--since=30d]
@@ -75,11 +87,13 @@ it catches missing MCP-server env vars or missing binaries up front,
 rather than failing mid-rebuild. See
 [knowledge-graph-source.md](knowledge-graph-source.md#validating-permissions-and-mcp-servers).
 
-## How it's used
+## How it's used (once built)
 
-Before dispatch, the relevant subgraph (the target repo, its recent
-MRs/PRs, related past Jira issues, module ownership) is serialized into the
-Claude Agent SDK session's system context — grounded, current context
-without re-crawling the repo from scratch every run. `conductor context
-<issue-key>` previews exactly what an agent would see, so a human can sanity
-check it before approving dispatch.
+Rather than serializing a subgraph into a session's context up front, the
+MCP tools would query it on demand the same way `kg_get_team` queries
+`kg-source` today — Claude asks for exactly what a question needs (a
+repo's recent MRs, a team's module ownership, related past issues) instead
+of the whole graph being loaded proactively. This is the same
+credit-friendly principle the current in-memory `kg-source` queries
+already follow; a graph store changes *how fast* that query is, not
+*whether* it stays scoped.
