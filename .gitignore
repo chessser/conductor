@@ -2,6 +2,8 @@ node_modules/
 dist/
 .conductor/*
 !.conductor/config.example.yml
+!.conductor/kg-source.example/
+!.conductor/kg-source.example/**
 *.log
 .DS_Store
 .env

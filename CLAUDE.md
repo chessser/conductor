@@ -41,7 +41,8 @@ the single most important invariant here.
 
 Zero external test framework — use Node's built-in `node:test` +
 `node:assert/strict`, matching the existing tests (`src/lib/dag.test.ts`,
-`src/lib/config.test.ts`, `src/types/task.test.ts`).
+`src/lib/config.test.ts`, `src/types/task.test.ts`, `src/lib/kg-source.test.ts`,
+`src/lib/kg-validate.test.ts`).
 
 - **Pure logic** (`src/lib/dag.ts`, `src/lib/config.ts`, `src/types/task.ts`,
   anything with no network/process I/O) — unit test exhaustively. This is

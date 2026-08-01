@@ -1,0 +1,41 @@
+id: platform
+display_name: Platform
+
+# Deliberately different ways-of-working from payments.yml — each team
+# owns its own, there's no requirement they match.
+ways_of_working:
+  branch_strategy: gitflow
+  merge_strategy: merge
+  requires_review: true
+  min_approvals: 2
+  ci_required: true
+  deploy_cadence: weekly
+  comms_channel: "#team-platform"
+
+gitlab_repos:
+  - id: platform-infra
+    provider: gitlab
+    project: acme/platform-infra
+    modules: [terraform, k8s]
+
+aws_accounts:
+  - id: platform-shared
+    account_id: "333333333333"
+    regions: [us-east-1, eu-west-1]
+    required_permissions: [manage-eks, manage-vpc]
+
+binaries_needed:
+  - name: terraform
+    min_version: "1.5"
+  - name: kubectl
+
+mcp_servers:
+  - id: kubernetes
+    package: "@example/k8s-mcp"
+    required_env: [KUBECONFIG]
+
+members:
+  - id: bob
+    name: Bob Ochieng
+    role: lead
+    principles: []

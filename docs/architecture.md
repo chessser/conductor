@@ -78,5 +78,7 @@ conductor mr-poll — labels ready-for-review when CI is green, flips Jira statu
 | `src/lib/dag.ts` | Pure dependency-graph resolution for ordered tasks |
 | `src/lib/providers/jira.ts` | `JiraClient` interface + factory — Jira integration boundary |
 | `src/lib/providers/scm.ts` | `ScmClient` interface + factory — GitLab/GitHub integration boundary |
-| `src/types/*.ts` | Shared types: `ConductorTask`, `RepoConfig`, label/status enums |
+| `src/lib/kg-source-schema.ts` / `src/lib/kg-source.ts` | Zod schema + loader/resolver for `.conductor/kg-source/` (multi-team knowledge-graph source, [knowledge-graph-source.md](knowledge-graph-source.md)) |
+| `src/lib/kg-validate.ts` | Checks declared MCP-server env vars and binaries against the current machine (`conductor kg validate`) |
+| `src/types/*.ts` | Shared types: `ConductorTask`, `RepoConfig`, `KnowledgeGraphSource`, label/status enums |
 | `templates/*` | Repeatable-task prompt + parameter-schema definitions |
