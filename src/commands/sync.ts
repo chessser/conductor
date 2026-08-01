@@ -7,7 +7,7 @@ function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
     throw new Error(
-      `${name} is not set. forge sync needs JIRA_EMAIL and JIRA_API_TOKEN in the environment ` +
+      `${name} is not set. conductor sync needs JIRA_EMAIL and JIRA_API_TOKEN in the environment ` +
         '— see docs/testing.md for how to get a free Jira Cloud API token.',
     );
   }
@@ -21,7 +21,7 @@ export function registerSync(program: Command): void {
     .action(async () => {
       const config = loadConfig();
       if (!config.jira) {
-        throw new Error('No `jira:` section in .forge/config.yml — see docs/repo-registry.md.');
+        throw new Error('No `jira:` section in .conductor/config.yml — see docs/repo-registry.md.');
       }
 
       const client = createJiraClient({

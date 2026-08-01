@@ -8,7 +8,7 @@ function issue(overrides: Partial<JiraIssueJson['fields']> = {}, key = 'PROJ-1')
     fields: {
       summary: 'Example issue',
       description: 'Some description',
-      issuetype: { name: 'Forge Task' },
+      issuetype: { name: 'Conductor Task' },
       labels: [],
       ...overrides,
     },
@@ -18,7 +18,7 @@ function issue(overrides: Partial<JiraIssueJson['fields']> = {}, key = 'PROJ-1')
 test('maps basic fields', () => {
   const task = mapJiraIssueToTask(issue());
   assert.equal(task.key, 'PROJ-1');
-  assert.equal(task.issueType, 'Forge Task');
+  assert.equal(task.issueType, 'Conductor Task');
   assert.equal(task.title, 'Example issue');
   assert.equal(task.summary, 'Some description');
 });
@@ -48,9 +48,9 @@ test('ignores an unrecognized status label value', () => {
   assert.equal(task.labels.status, 'draft');
 });
 
-test('unknown issuetype.name falls back to Forge Request', () => {
+test('unknown issuetype.name falls back to Conductor Request', () => {
   const task = mapJiraIssueToTask(issue({ issuetype: { name: 'Bug' } }));
-  assert.equal(task.issueType, 'Forge Request');
+  assert.equal(task.issueType, 'Conductor Request');
 });
 
 test('dependsOn comes only from "is blocked by" inward links', () => {

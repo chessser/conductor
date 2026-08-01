@@ -1,4 +1,4 @@
-import type { ForgeTask, TaskStatus } from '../../types/task.ts';
+import type { ConductorTask, TaskStatus } from '../../types/task.ts';
 import { mapJiraIssueToTask, replaceStatusLabel, type JiraIssueJson } from './jira-mapping.ts';
 
 /**
@@ -10,9 +10,9 @@ import { mapJiraIssueToTask, replaceStatusLabel, type JiraIssueJson } from './ji
  */
 export interface JiraClient {
   /** Search issues matching the configured JQL (design doc §4.3). */
-  search(jql: string): Promise<ForgeTask[]>;
+  search(jql: string): Promise<ConductorTask[]>;
   /** Fetch a single issue by key. */
-  get(key: string): Promise<ForgeTask>;
+  get(key: string): Promise<ConductorTask>;
   /** Replaces the status/* label, mirroring this app's own status model (docs/jira-structure.md). */
   setStatus(key: string, status: TaskStatus): Promise<void>;
   /** Append a comment, e.g. linking the resulting MR/PR. */
@@ -64,7 +64,7 @@ export function createJiraClient(options: JiraClientOptions): JiraClient {
   };
 
   return {
-    async search(jql: string): Promise<ForgeTask[]> {
+    async search(jql: string): Promise<ConductorTask[]> {
       const data = await requestJson<JiraSearchResponse>(fetchImpl, `${base}/rest/api/3/search/jql`, {
         method: 'POST',
         headers,
@@ -73,7 +73,7 @@ export function createJiraClient(options: JiraClientOptions): JiraClient {
       return data.issues.map(mapJiraIssueToTask);
     },
 
-    async get(key: string): Promise<ForgeTask> {
+    async get(key: string): Promise<ConductorTask> {
       const fieldsQuery = ISSUE_FIELDS.join(',');
       const issue = await requestJson<JiraIssueJson>(
         fetchImpl,

@@ -9,7 +9,7 @@ const SAMPLE_ISSUE: JiraIssueJson = {
   fields: {
     summary: 'Add health-check endpoint',
     description: 'Standard health-check per template',
-    issuetype: { name: 'Forge Task' },
+    issuetype: { name: 'Conductor Task' },
     labels: ['status/ready', 'agent-type/claude', 'mode/background'],
   },
 };

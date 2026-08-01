@@ -42,7 +42,7 @@ the version bump. Do not touch unrelated dependencies.
 1. Create `templates/<id>/prompt.md` and `templates/<id>/schema.json`.
 2. Add the id to the Jira form's `template` dropdown (Jira admin, manual
    step — not automated by this tool).
-3. No code change needed — `forge run`/`forge pair` resolve the template by
+3. No code change needed — `conductor run`/`conductor pair` resolve the template by
    id at dispatch time.
 
 No templates ship yet — this directory is a placeholder until step 4/5 of

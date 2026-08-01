@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { findCycle, dispatchableTasks, layerOrder } from './dag.ts';
-import type { ForgeTask } from '../types/task.ts';
+import type { ConductorTask } from '../types/task.ts';
 
-function task(key: string, dependsOn: string[] = [], status: ForgeTask['labels']['status'] = 'ready'): ForgeTask {
+function task(key: string, dependsOn: string[] = [], status: ConductorTask['labels']['status'] = 'ready'): ConductorTask {
   return {
     key,
-    issueType: 'Forge Task',
+    issueType: 'Conductor Task',
     title: key,
     summary: '',
     labels: { status, hitlGate: 'none', agentType: 'claude', mode: 'background' },
@@ -19,12 +19,12 @@ test('findCycle returns [] for an acyclic graph', () => {
     ['A', task('A')],
     ['B', task('B', ['A'])],
     ['C', task('C', ['B'])],
-  ].map(([k, v]) => [k as string, v as ForgeTask]));
+  ].map(([k, v]) => [k as string, v as ConductorTask]));
   assert.deepEqual(findCycle(tasks), []);
 });
 
 test('findCycle detects a direct cycle', () => {
-  const tasks = new Map<string, ForgeTask>([
+  const tasks = new Map<string, ConductorTask>([
     ['A', task('A', ['B'])],
     ['B', task('B', ['A'])],
   ]);
@@ -33,7 +33,7 @@ test('findCycle detects a direct cycle', () => {
 });
 
 test('dispatchableTasks filters on status/labels/deps', () => {
-  const tasks = new Map<string, ForgeTask>([
+  const tasks = new Map<string, ConductorTask>([
     ['A', task('A', [], 'done')],
     ['B', task('B', ['A'], 'ready')],
     ['C', task('C', ['A'], 'draft')],
@@ -43,7 +43,7 @@ test('dispatchableTasks filters on status/labels/deps', () => {
 });
 
 test('layerOrder groups into dependency layers', () => {
-  const tasks = new Map<string, ForgeTask>([
+  const tasks = new Map<string, ConductorTask>([
     ['A', task('A')],
     ['B', task('B', ['A'])],
     ['C', task('C', ['A'])],
@@ -56,7 +56,7 @@ test('layerOrder groups into dependency layers', () => {
 });
 
 test('layerOrder throws on an unresolved cycle', () => {
-  const tasks = new Map<string, ForgeTask>([
+  const tasks = new Map<string, ConductorTask>([
     ['A', task('A', ['B'])],
     ['B', task('B', ['A'])],
   ]);

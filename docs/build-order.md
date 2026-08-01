@@ -3,7 +3,7 @@
 This is the intended implementation sequence — each step should be usable
 and mergeable on its own before the next one starts.
 
-1. **`forge sync`** against a real Jira project — pure Jira→local-index
+1. **`conductor sync`** against a real Jira project — pure Jira→local-index
    mapping (`src/lib/providers/jira-mapping.ts`'s `mapJiraIssueToTask`, the
    REST client in `src/lib/providers/jira.ts`, and `src/lib/task-index.ts`).
    **Done** — the mapping function is unit tested against fixtures, and the
@@ -14,8 +14,8 @@ and mergeable on its own before the next one starts.
    free Jira Cloud sandbox for manual/local checks beyond what the fake
    covers.
 
-2. **Label-gate + DAG-resolution logic** (`forge ready`) — **done**. Pure
-   logic tested in `src/lib/dag.ts` / `src/types/task.ts`; `forge ready`
+2. **Label-gate + DAG-resolution logic** (`conductor ready`) — **done**. Pure
+   logic tested in `src/lib/dag.ts` / `src/types/task.ts`; `conductor ready`
    reads the local task index written by step 1. No
    live dispatch yet.
 
@@ -23,24 +23,24 @@ and mergeable on its own before the next one starts.
    real repos. Pick the embedded store (Kuzu vs. SQLite) here — see
    [knowledge-graph.md](knowledge-graph.md).
 
-4. **`forge pair`** (foreground) via the Claude Agent SDK + Bedrock against
+4. **`conductor pair`** (foreground) via the Claude Agent SDK + Bedrock against
    a single sandboxed repo — validate the execution path end to end
    (session creation, tool permissions, streaming to the terminal) before
    attempting background mode.
 
-5. **`forge run`** (background, isolated git worktree per task) + cost
+5. **`conductor run`** (background, isolated git worktree per task) + cost
    logging + headroom gate (see [cost-and-concurrency.md](cost-and-concurrency.md)).
 
-6. **`forge mr-poll`** (status flip, label, never merge) + Jira comment-back
+6. **`conductor mr-poll`** (status flip, label, never merge) + Jira comment-back
    (see [human-in-the-loop.md](human-in-the-loop.md)).
 
-7. **`forge triage`** (agent-assisted Request → Task/Ordered-Task
+7. **`conductor triage`** (agent-assisted Request → Task/Ordered-Task
    decomposition, human-confirmed) — last, since it depends on everything
    above already working end to end.
 
 ## What not to build
 
-- Don't put derived state (`.forge/`) in git — it's a rebuildable cache,
+- Don't put derived state (`.conductor/`) in git — it's a rebuildable cache,
   not a source of truth. No shared "state branch" is needed since this is
   a single-user, single-Mac tool.
 - Don't unit-test the orchestration/integration layer into a false sense of

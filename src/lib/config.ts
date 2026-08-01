@@ -30,7 +30,7 @@ const JiraConfigSchema = z.object({
   jql: z.string(),
 });
 
-const ForgeConfigSchema = z.object({
+const ConductorConfigSchema = z.object({
   repos: z.array(RepoConfigSchema).default([]),
   jira: JiraConfigSchema.optional(),
   cost: z
@@ -41,30 +41,30 @@ const ForgeConfigSchema = z.object({
     .default({}),
 });
 
-export type ForgeConfig = z.infer<typeof ForgeConfigSchema>;
+export type ConductorConfig = z.infer<typeof ConductorConfigSchema>;
 
 /**
- * Resolves the config path: explicit override > ./.forge/config.yml >
- * ~/.config/forge/repos.yml. See design doc §5.
+ * Resolves the config path: explicit override > ./.conductor/config.yml >
+ * ~/.config/conductor/repos.yml. See design doc §5.
  */
 export function resolveConfigPath(explicitPath?: string): string {
   if (explicitPath) return explicitPath;
-  const projectLocal = join(process.cwd(), '.forge', 'config.yml');
+  const projectLocal = join(process.cwd(), '.conductor', 'config.yml');
   if (existsSync(projectLocal)) return projectLocal;
-  return join(homedir(), '.config', 'forge', 'repos.yml');
+  return join(homedir(), '.config', 'conductor', 'repos.yml');
 }
 
-export function loadConfig(path?: string): ForgeConfig {
+export function loadConfig(path?: string): ConductorConfig {
   const resolved = resolveConfigPath(path);
   if (!existsSync(resolved)) {
     throw new Error(
-      `No forge config found at ${resolved}. Create one — see docs/repo-registry.md for the schema.`,
+      `No conductor config found at ${resolved}. Create one — see docs/repo-registry.md for the schema.`,
     );
   }
   const raw = parseYaml(readFileSync(resolved, 'utf8'));
-  return ForgeConfigSchema.parse(raw ?? {});
+  return ConductorConfigSchema.parse(raw ?? {});
 }
 
-export function repoRegistry(config: ForgeConfig): RepoConfig[] {
+export function repoRegistry(config: ConductorConfig): RepoConfig[] {
   return config.repos;
 }

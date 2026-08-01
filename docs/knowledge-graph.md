@@ -3,11 +3,11 @@
 ## What it is
 
 A local, per-user, deterministically-rebuilt graph stored under
-`.forge/kg/` (gitignored), built by `forge kg update`. Not synced or shared
+`.conductor/kg/` (gitignored), built by `conductor kg update`. Not synced or shared
 between users — the *generation logic* lives in this repo and is identical
 for everyone; the *output* is not shared, because it's scoped to whatever
 the invoking user's Jira/GitLab/GitHub tokens can actually see. Two
-engineers running `forge kg update` get graphs with the same schema, built
+engineers running `conductor kg update` get graphs with the same schema, built
 by the same code, but different content.
 
 Storage: an embedded graph-capable store (e.g. [Kuzu](https://kuzudb.com/),
@@ -33,22 +33,22 @@ Edges:
 - `Person -[OWNS]-> Module` (derived from commit/blame frequency, refreshed
   on each `kg update`, never hand-maintained)
 
-## `forge kg update`
+## `conductor kg update`
 
 ```
-forge kg update [--repos=a,b,c] [--since=30d]
+conductor kg update [--repos=a,b,c] [--since=30d]
 ```
 
 1. Pulls open + recently-closed Jira issues matching the JQL configured in
-   `.forge/config.yml` (`jira.jql`) — this JQL *is* the scope boundary for
+   `.conductor/config.yml` (`jira.jql`) — this JQL *is* the scope boundary for
    what the graph, and therefore agent context, knows about.
 2. Pulls repo metadata (branches, recent MRs/PRs, top-level module
    structure) for every repo in the registry the user has access to.
 3. Re-derives all edges from scratch — an idempotent full rebuild, not an
    incremental patch. Determinism beats incremental-merge complexity at
-   this scale; if the graph ever looks wrong, delete `.forge/kg/` and
+   this scale; if the graph ever looks wrong, delete `.conductor/kg/` and
    rebuild.
-4. Writes the graph plus a human-readable summary (`forge kg summary`) so a
+4. Writes the graph plus a human-readable summary (`conductor kg summary`) so a
    user can sanity-check what got indexed without querying the DB directly.
 
 ## How it's used
@@ -56,6 +56,6 @@ forge kg update [--repos=a,b,c] [--since=30d]
 Before dispatch, the relevant subgraph (the target repo, its recent
 MRs/PRs, related past Jira issues, module ownership) is serialized into the
 Claude Agent SDK session's system context — grounded, current context
-without re-crawling the repo from scratch every run. `forge context
+without re-crawling the repo from scratch every run. `conductor context
 <issue-key>` previews exactly what an agent would see, so a human can sanity
 check it before approving dispatch.

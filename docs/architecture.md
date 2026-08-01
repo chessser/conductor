@@ -4,17 +4,17 @@
 
 ```
 Jira (source of truth)
-   │  forge sync
+   │  conductor sync
    ▼
-Local task index (.forge/tasks/*.json)   — derived, rebuildable, gitignored
+Local task index (.conductor/tasks/*.json)   — derived, rebuildable, gitignored
    │
-   ├──► Repo registry (.forge/config.yml)
+   ├──► Repo registry (.conductor/config.yml)
    │
    ▼
-Knowledge graph (.forge/kg/*)  ◄── forge kg update
+Knowledge graph (.conductor/kg/*)  ◄── conductor kg update
    │  context for
    ▼
-Dispatcher (forge ready / forge run / forge pair)
+Dispatcher (conductor ready / conductor run / conductor pair)
    │  resolves DAG order, checks label gates
    ▼
 Claude Agent SDK session (foreground or background), isolated git worktree
@@ -23,7 +23,7 @@ Claude Agent SDK session (foreground or background), isolated git worktree
 GitLab/GitHub: branch, commit, open MR/PR
    │
    ▼
-forge mr-poll — labels ready-for-review when CI is green, flips Jira status,
+conductor mr-poll — labels ready-for-review when CI is green, flips Jira status,
                 never merges
 ```
 
@@ -31,16 +31,16 @@ forge mr-poll — labels ready-for-review when CI is green, flips Jira status,
 
 1. **The task tracker is the source of truth; local state is a derived,
    rebuildable cache.** Jira is authoritative for what work exists and its
-   status. `.forge/tasks/*.json` is rebuilt from Jira on every `forge sync`
+   status. `.conductor/tasks/*.json` is rebuilt from Jira on every `conductor sync`
    — never hand-edited, never itself authoritative. Everything under
-   `.forge/` is gitignored; if it's ever inconsistent, delete it and
-   `forge sync && forge kg update` again.
+   `.conductor/` is gitignored; if it's ever inconsistent, delete it and
+   `conductor sync && conductor kg update` again.
 
 2. **Human-gated at two points, never fully silent.**
    - Jira issues only become dispatchable once explicitly marked
      `status/ready` with both `agent-type/*` and `mode/*` labels present —
      never inferred from ambiguous state. See [jira-structure.md](jira-structure.md).
-   - MRs/PRs are **never auto-merged**. `forge mr-poll`'s job stops at
+   - MRs/PRs are **never auto-merged**. `conductor mr-poll`'s job stops at
      labeling something ready for human review. A failing pipeline is a
      stop-and-look situation, not a retry loop. See
      [human-in-the-loop.md](human-in-the-loop.md).
@@ -74,9 +74,9 @@ forge mr-poll — labels ready-for-review when CI is green, flips Jira status,
 |---|---|
 | `src/cli.ts` | Commander entrypoint, registers every subcommand |
 | `src/commands/*.ts` | One file per CLI verb — thin, delegates to `src/lib/*` |
-| `src/lib/config.ts` | Loads and validates `.forge/config.yml` (the repo registry, §5) |
+| `src/lib/config.ts` | Loads and validates `.conductor/config.yml` (the repo registry, §5) |
 | `src/lib/dag.ts` | Pure dependency-graph resolution for ordered tasks |
 | `src/lib/providers/jira.ts` | `JiraClient` interface + factory — Jira integration boundary |
 | `src/lib/providers/scm.ts` | `ScmClient` interface + factory — GitLab/GitHub integration boundary |
-| `src/types/*.ts` | Shared types: `ForgeTask`, `RepoConfig`, label/status enums |
+| `src/types/*.ts` | Shared types: `ConductorTask`, `RepoConfig`, label/status enums |
 | `templates/*` | Repeatable-task prompt + parameter-schema definitions |
