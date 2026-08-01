@@ -103,6 +103,12 @@ add tests that mock away the thing under test just to hit a coverage
 number; that proves nothing and this repo would rather have an honest gap
 than a fake green check.
 
+## Security
+
+See [SECURITY.md](SECURITY.md) for the vulnerability reporting process and
+what's automatically checked in CI (`npm audit`, secret scanning, CodeQL,
+dependency review).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
