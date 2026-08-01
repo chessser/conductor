@@ -1,0 +1,24 @@
+# Copy to .forge/config.yml (gitignored) and fill in your own values.
+# Schema and field docs: docs/repo-registry.md
+
+repos:
+  - id: payments-api
+    provider: gitlab
+    project: mygroup/payments-api
+    default_branch: main
+    modules: [src/billing, src/ledger, src/webhooks]
+
+  - id: internal-docs
+    provider: github
+    project: myorg/internal-docs
+    default_branch: main
+    modules: []
+
+jira:
+  base_url: https://yourcompany.atlassian.net
+  project_key: PROJ
+  jql: 'project = PROJ AND labels in ("forge-task", "forge-ordered-task")'
+
+cost:
+  daily_ceiling_usd: 25
+  weekly_ceiling_usd: 100
