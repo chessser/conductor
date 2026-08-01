@@ -1,0 +1,45 @@
+# Copy this whole directory to .conductor/kg-source/ (gitignored) and edit.
+# Schema and field docs: docs/knowledge-graph-source.md
+
+version: 1
+organization: acme-corp
+
+# Org-wide principles. Every team inherits these — see
+# docs/knowledge-graph-source.md's inheritance rules.
+principles:
+  - id: security-first
+    statement: Least privilege by default; no long-lived credentials in code or CI.
+    doc: https://acme.atlassian.net/wiki/spaces/ENG/pages/123/Security+principles
+  - id: docs-as-code
+    statement: Anything worth knowing twice goes in a repo, not a chat thread.
+
+# Resources every team gets by default. A team can add its own on top of
+# these, or override one by reusing its id (see docs/knowledge-graph-source.md).
+shared_resources:
+  confluence:
+    - id: eng-space
+      base_url: https://acme.atlassian.net/wiki
+      space_key: ENG
+  jira:
+    - id: main-jira
+      base_url: https://acme.atlassian.net
+      project_key: ENG
+  aws_accounts:
+    - id: shared-tooling
+      account_id: "111111111111"
+      role_arn: arn:aws:iam::111111111111:role/ConductorReadOnly
+      regions: [us-east-1]
+      required_permissions: [readonly-tooling]
+
+# MCP servers every team needs. `conductor kg validate` checks that
+# required_env is actually set in this environment — never store the
+# values themselves here.
+mcp_servers:
+  - id: atlassian
+    package: "@example/atlassian-mcp"
+    required_env: [ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN]
+
+# Team ids — each resolves to teams/<id>.yml in this same directory.
+teams:
+  - payments
+  - platform

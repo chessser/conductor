@@ -4,13 +4,17 @@ A Jira-driven agentic orchestrator: turns Jira issues into agent-executed
 changes across GitLab and GitHub repos, backed by a locally-rebuilt
 knowledge graph, with human-gated dispatch and merge review at every step.
 
-**Status: project skeleton, Jira read/write layer working.** `conductor sync`
-and `conductor ready` are real — the Jira REST client is implemented and
-verified in CI against an in-repo fake Jira server (no live account or
-cost required, see [docs/testing.md](docs/testing.md)). GitLab/GitHub and
-Bedrock integration are not built yet — those commands still throw "not
-implemented yet" with a pointer to the doc describing what they should do.
-See [docs/build-order.md](docs/build-order.md) for the implementation
+**Status: project skeleton, Jira read/write layer + knowledge-graph source
+working.** `conductor sync` and `conductor ready` are real — the Jira REST
+client is implemented and verified in CI against an in-repo fake Jira
+server (no live account or cost required, see
+[docs/testing.md](docs/testing.md)). `conductor kg validate` is real too —
+it checks a multi-team YAML source
+([docs/knowledge-graph-source.md](docs/knowledge-graph-source.md)) against
+this machine's env vars and installed binaries. GitLab/GitHub, the actual
+graph DB build, and Bedrock integration are not built yet — those commands
+still throw "not implemented yet" with a pointer to the doc describing
+what they should do. See [docs/build-order.md](docs/build-order.md) for the implementation
 sequence and what's done so far.
 
 ## Why this exists
@@ -23,9 +27,11 @@ and merges. Nothing merges itself. See [docs/human-in-the-loop.md](docs/human-in
 
 ## Documentation
 
+- [docs/how-it-works.md](docs/how-it-works.md) — the full lifecycle: install, credentials, what runs on each command, scheduling, how the knowledge graph forms
 - [docs/architecture.md](docs/architecture.md) — system overview and core principles
 - [docs/jira-structure.md](docs/jira-structure.md) — issue types, the intake form, labels/flags
 - [docs/knowledge-graph.md](docs/knowledge-graph.md) — what it is, how it's built, how it's used
+- [docs/knowledge-graph-source.md](docs/knowledge-graph-source.md) — the multi-team YAML source (teams, principles, repos, AWS, MCP servers)
 - [docs/repo-registry.md](docs/repo-registry.md) — `.conductor/config.yml` schema
 - [docs/task-types.md](docs/task-types.md) — repeatable tasks vs. ordered (DAG) tasks
 - [docs/cost-and-concurrency.md](docs/cost-and-concurrency.md) — Bedrock usage tracking and dispatch caps
@@ -40,6 +46,7 @@ and merges. Nothing merges itself. See [docs/human-in-the-loop.md](docs/human-in
 conductor sync                     # pull Jira issues matching configured JQL -> local index
 conductor kg update [--repos=..]   # rebuild local knowledge graph
 conductor kg summary               # human-readable dump of what's indexed
+conductor kg validate               # check MCP-server env vars + binaries against this machine
 conductor context <issue-key>      # preview what an agent would see for this issue
 conductor ready                    # list dispatchable tasks, split foreground/background
 conductor triage                   # assist Request -> Task/Ordered-Task decomposition
@@ -57,11 +64,13 @@ git clone https://github.com/chessser/conductor.git
 cd conductor
 npm install
 cp .conductor/config.example.yml .conductor/config.yml   # edit: your repos, Jira JQL, cost ceilings
-cp .env.example .env                              # JIRA_EMAIL + JIRA_API_TOKEN, see docs/testing.md
+cp -r .conductor/kg-source.example .conductor/kg-source   # edit: your teams, principles, AWS/MCP/repos
+cp .env.example .env                              # JIRA_EMAIL + JIRA_API_TOKEN — auto-loaded, see docs/how-it-works.md
 npm run build
 npm link                                          # or: node dist/cli.js
 conductor sync
 conductor ready
+conductor kg validate
 ```
 
 `conductor sync`/`conductor ready` work against any real Jira Cloud site,

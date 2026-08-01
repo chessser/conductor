@@ -49,7 +49,9 @@ free forever — not a trial) is enough:
    JIRA_API_TOKEN=<the token from step 3>
    ```
 5. Point `.conductor/config.yml`'s `jira.base_url` at your site and run
-   `conductor sync` for real.
+   `conductor sync` for real — `.env` is loaded automatically, see
+   [how-it-works.md](how-it-works.md#credentials-how-they-actually-get-used)
+   for exactly how and when.
 
 This is a manual, local-only check — never wire real credentials into CI.
 If a future CI job needs live-service validation, that's a deliberate,

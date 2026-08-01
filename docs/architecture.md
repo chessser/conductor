@@ -1,6 +1,15 @@
 # Architecture
 
+This doc covers the system's shape and principles. For a step-by-step walk
+through what actually happens when you run each command, where credentials
+live, and how the knowledge graph gets built, see
+[how-it-works.md](how-it-works.md).
+
 ## System overview
+
+Every box below is produced by a one-shot CLI invocation, not a running
+service — there is no daemon and nothing syncs on its own. See
+[how-it-works.md](how-it-works.md#the-mental-model-a-cli-not-a-service).
 
 ```
 Jira (source of truth)
@@ -72,11 +81,14 @@ conductor mr-poll — labels ready-for-review when CI is green, flips Jira statu
 
 | Path | Responsibility |
 |---|---|
-| `src/cli.ts` | Commander entrypoint, registers every subcommand |
+| `src/cli.ts` | Commander entrypoint, registers every subcommand, loads `.env` before any command runs |
+| `src/lib/env.ts` | Minimal `.env` parser/loader — never overwrites an already-set variable |
 | `src/commands/*.ts` | One file per CLI verb — thin, delegates to `src/lib/*` |
 | `src/lib/config.ts` | Loads and validates `.conductor/config.yml` (the repo registry, §5) |
 | `src/lib/dag.ts` | Pure dependency-graph resolution for ordered tasks |
 | `src/lib/providers/jira.ts` | `JiraClient` interface + factory — Jira integration boundary |
 | `src/lib/providers/scm.ts` | `ScmClient` interface + factory — GitLab/GitHub integration boundary |
-| `src/types/*.ts` | Shared types: `ConductorTask`, `RepoConfig`, label/status enums |
+| `src/lib/kg-source-schema.ts` / `src/lib/kg-source.ts` | Zod schema + loader/resolver for `.conductor/kg-source/` (multi-team knowledge-graph source, [knowledge-graph-source.md](knowledge-graph-source.md)) |
+| `src/lib/kg-validate.ts` | Checks declared MCP-server env vars and binaries against the current machine (`conductor kg validate`) |
+| `src/types/*.ts` | Shared types: `ConductorTask`, `RepoConfig`, `KnowledgeGraphSource`, label/status enums |
 | `templates/*` | Repeatable-task prompt + parameter-schema definitions |

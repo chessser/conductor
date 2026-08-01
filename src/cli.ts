@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import { loadEnvFile } from './lib/env.ts';
 import { registerSync } from './commands/sync.ts';
 import { registerKg } from './commands/kg.ts';
 import { registerContext } from './commands/context.ts';
@@ -9,6 +10,11 @@ import { registerPair } from './commands/pair.ts';
 import { registerRun } from './commands/run.ts';
 import { registerStatus } from './commands/status.ts';
 import { registerMrPoll } from './commands/mr-poll.ts';
+
+// Load .env before any command runs, so JIRA_EMAIL/JIRA_API_TOKEN etc. are
+// available without the user having to `export` them by hand. Never
+// overwrites a variable already set in the shell/CI — see src/lib/env.ts.
+loadEnvFile();
 
 const program = new Command();
 

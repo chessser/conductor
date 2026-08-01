@@ -1,0 +1,76 @@
+id: payments
+display_name: Payments
+
+# Team-level principles, in addition to (not instead of) root.yml's.
+principles:
+  - id: pci-scope
+    statement: Card data never leaves the payments AWS account.
+    doc: https://acme.atlassian.net/wiki/spaces/PAY/pages/456/PCI+scope
+
+# Structured fields an agent/dispatcher can query directly; anything more
+# nuanced goes in principles_doc instead of forcing it into a field.
+ways_of_working:
+  branch_strategy: trunk-based
+  merge_strategy: squash
+  requires_review: true
+  min_approvals: 1
+  ci_required: true
+  deploy_cadence: continuous
+  comms_channel: "#team-payments"
+  principles_doc: https://acme.atlassian.net/wiki/spaces/PAY/pages/789/Payments+ways+of+working
+
+confluence_spaces:
+  - id: payments-space
+    base_url: https://acme.atlassian.net/wiki
+    space_key: PAY
+
+jira_projects:
+  - id: payments-jira
+    base_url: https://acme.atlassian.net
+    project_key: PAY
+    jql: 'project = PAY AND labels in ("conductor-task", "conductor-ordered-task")'
+
+gitlab_repos:
+  - id: payments-api
+    provider: gitlab
+    project: acme/payments-api
+    default_branch: main
+    modules: [src/billing, src/ledger, src/webhooks]
+
+github_repos:
+  - id: payments-docs
+    provider: github
+    project: acme/payments-docs
+    default_branch: main
+
+aws_accounts:
+  - id: payments-prod
+    account_id: "222222222222"
+    role_arn: arn:aws:iam::222222222222:role/ConductorPaymentsDeploy
+    regions: [us-east-1]
+    required_permissions: [deploy-lambda, read-secrets-manager]
+
+binaries_needed:
+  - name: aws-cli
+    min_version: "2.0"
+  - name: docker
+
+permissions_needed:
+  - resource: gitlab:payments-api
+    scope: [read_repository, write_repository]
+  - resource: aws:payments-prod
+    scope: [deploy-lambda]
+
+mcp_servers:
+  - id: gitlab
+    package: "@example/gitlab-mcp"
+    required_env: [GITLAB_TOKEN]
+
+# User-level principles/context, on top of team and org level.
+members:
+  - id: alice
+    name: Alice Nguyen
+    role: lead
+    principles:
+      - id: alice-oncall
+        statement: Primary oncall for payments-api; page before touching prod config.
