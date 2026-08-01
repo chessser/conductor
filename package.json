@@ -8,12 +8,12 @@
     "forge": "./dist/cli.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.6.0"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
-    "test": "node --test --experimental-strip-types src/**/*.test.ts",
+    "test": "node --test --experimental-strip-types --test-reporter=spec 'src/**/*.test.ts'",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit"
   },
