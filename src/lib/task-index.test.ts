@@ -4,12 +4,12 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { writeTaskIndex, loadTaskIndex } from './task-index.ts';
-import type { ForgeTask } from '../types/task.ts';
+import type { ConductorTask } from '../types/task.ts';
 
-function task(key: string): ForgeTask {
+function task(key: string): ConductorTask {
   return {
     key,
-    issueType: 'Forge Task',
+    issueType: 'Conductor Task',
     title: key,
     summary: '',
     labels: { status: 'ready', hitlGate: 'none' },
@@ -18,13 +18,13 @@ function task(key: string): ForgeTask {
 }
 
 test('loadTaskIndex returns an empty map when no file exists yet', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'forge-index-'));
+  const dir = mkdtempSync(join(tmpdir(), 'conductor-index-'));
   const index = loadTaskIndex(join(dir, 'tasks.json'));
   assert.equal(index.size, 0);
 });
 
 test('writeTaskIndex then loadTaskIndex round-trips, sorted by key', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'forge-index-'));
+  const dir = mkdtempSync(join(tmpdir(), 'conductor-index-'));
   const path = join(dir, 'nested', 'tasks.json');
   writeTaskIndex([task('B-2'), task('A-1')], path);
 

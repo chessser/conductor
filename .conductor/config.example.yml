@@ -1,4 +1,4 @@
-# Copy to .forge/config.yml (gitignored) and fill in your own values.
+# Copy to .conductor/config.yml (gitignored) and fill in your own values.
 # Schema and field docs: docs/repo-registry.md
 
 repos:
@@ -17,7 +17,7 @@ repos:
 jira:
   base_url: https://yourcompany.atlassian.net
   project_key: PROJ
-  jql: 'project = PROJ AND labels in ("forge-task", "forge-ordered-task")'
+  jql: 'project = PROJ AND labels in ("conductor-task", "conductor-ordered-task")'
 
 cost:
   daily_ceiling_usd: 25

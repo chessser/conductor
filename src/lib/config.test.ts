@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { loadConfig, repoRegistry } from './config.ts';
 
 function writeTempConfig(yaml: string): string {
-  const dir = mkdtempSync(join(tmpdir(), 'forge-config-'));
+  const dir = mkdtempSync(join(tmpdir(), 'conductor-config-'));
   const path = join(dir, 'config.yml');
   writeFileSync(path, yaml, 'utf8');
   return path;
@@ -40,5 +40,5 @@ repos:
 });
 
 test('loadConfig throws with a helpful message when the file is missing', () => {
-  assert.throws(() => loadConfig('/nonexistent/path/config.yml'), /No forge config found/);
+  assert.throws(() => loadConfig('/nonexistent/path/config.yml'), /No conductor config found/);
 });

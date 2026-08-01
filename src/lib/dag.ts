@@ -1,4 +1,4 @@
-import type { ForgeTask } from '../types/task.ts';
+import type { ConductorTask } from '../types/task.ts';
 import { isDispatchable } from '../types/task.ts';
 
 export interface DagError {
@@ -10,7 +10,7 @@ export interface DagError {
  * Detects cycles in the dependsOn graph. Returns the keys involved in the
  * first cycle found, or an empty array if the graph is acyclic.
  */
-export function findCycle(tasks: ReadonlyMap<string, ForgeTask>): string[] {
+export function findCycle(tasks: ReadonlyMap<string, ConductorTask>): string[] {
   const WHITE = 0, GRAY = 1, BLACK = 2;
   const color = new Map<string, number>();
   const path: string[] = [];
@@ -45,17 +45,17 @@ export function findCycle(tasks: ReadonlyMap<string, ForgeTask>): string[] {
 }
 
 /** All tasks currently dispatchable, given the full task set (design doc §3.3). */
-export function dispatchableTasks(tasks: ReadonlyMap<string, ForgeTask>): ForgeTask[] {
+export function dispatchableTasks(tasks: ReadonlyMap<string, ConductorTask>): ConductorTask[] {
   return [...tasks.values()].filter((t) => isDispatchable(t, tasks));
 }
 
 /**
- * Given a Forge Ordered Task's sub-task keys, returns them grouped into
+ * Given a Conductor Ordered Task's sub-task keys, returns them grouped into
  * dependency layers (layer 0 has no unfinished deps within the set, layer 1
  * depends only on layer 0, etc). Used to preview execution order before
  * dispatch; not itself a scheduler.
  */
-export function layerOrder(tasks: ReadonlyMap<string, ForgeTask>, subtaskKeys: string[]): string[][] {
+export function layerOrder(tasks: ReadonlyMap<string, ConductorTask>, subtaskKeys: string[]): string[][] {
   const remaining = new Set(subtaskKeys);
   const done = new Set<string>();
   const layers: string[][] = [];

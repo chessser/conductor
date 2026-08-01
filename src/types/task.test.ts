@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isDispatchable, type ForgeTask } from './task.ts';
+import { isDispatchable, type ConductorTask } from './task.ts';
 
-function baseTask(overrides: Partial<ForgeTask> = {}): ForgeTask {
+function baseTask(overrides: Partial<ConductorTask> = {}): ConductorTask {
   return {
     key: 'PROJ-1',
-    issueType: 'Forge Task',
+    issueType: 'Conductor Task',
     title: 'Example',
     summary: '',
     labels: { status: 'ready', hitlGate: 'none', agentType: 'claude', mode: 'background' },

@@ -13,7 +13,7 @@ import { registerMrPoll } from './commands/mr-poll.ts';
 const program = new Command();
 
 program
-  .name('forge')
+  .name('conductor')
   .description(
     'Jira-driven agentic orchestrator. Turns Jira issues into agent-executed ' +
       'changes across GitLab/GitHub repos, gated by human review at every ' +

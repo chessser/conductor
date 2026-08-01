@@ -1,7 +1,7 @@
 node_modules/
 dist/
-.forge/*
-!.forge/config.example.yml
+.conductor/*
+!.conductor/config.example.yml
 *.log
 .DS_Store
 .env

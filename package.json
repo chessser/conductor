@@ -1,11 +1,11 @@
 {
-  "name": "task-forge",
+  "name": "conductor",
   "version": "0.1.0",
   "description": "Jira-driven agentic orchestrator: turns Jira issues into agent-executed changes across GitLab/GitHub repos, with a locally-rebuilt knowledge graph and human-gated dispatch.",
   "type": "module",
   "license": "MIT",
   "bin": {
-    "forge": "./dist/cli.js"
+    "conductor": "./dist/cli.js"
   },
   "engines": {
     "node": ">=22.6.0"

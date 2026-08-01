@@ -19,7 +19,7 @@ shape the client actually sent.
 random free port, points `createJiraClient` at it, and asserts on both
 directions: what the client sends (JQL in the search body, which label got
 replaced by `setStatus`, the ADF shape of a comment) and what it returns
-(mapped `ForgeTask` fields). This runs in CI with **zero external network
+(mapped `ConductorTask` fields). This runs in CI with **zero external network
 access and zero cost** — see `.github/workflows/ci.yml`.
 
 When a second provider (GitLab/GitHub `ScmClient`) is implemented, follow
@@ -39,8 +39,8 @@ free forever — not a trial) is enough:
 
 1. Go to https://www.atlassian.com/software/jira/free and create a site
    (e.g. `your-name.atlassian.net`).
-2. Create a project with issue types `Forge Request`, `Forge Task`,
-   `Forge Ordered Task` (Jira admin → issue types), or reuse the defaults
+2. Create a project with issue types `Conductor Request`, `Conductor Task`,
+   `Conductor Ordered Task` (Jira admin → issue types), or reuse the defaults
    and adjust `docs/jira-structure.md` labels accordingly for your test.
 3. Generate an API token: https://id.atlassian.com/manage-profile/security/api-tokens
 4. Copy `.env.example` to `.env` (gitignored) and fill in:
@@ -48,8 +48,8 @@ free forever — not a trial) is enough:
    JIRA_EMAIL=you@example.com
    JIRA_API_TOKEN=<the token from step 3>
    ```
-5. Point `.forge/config.yml`'s `jira.base_url` at your site and run
-   `forge sync` for real.
+5. Point `.conductor/config.yml`'s `jira.base_url` at your site and run
+   `conductor sync` for real.
 
 This is a manual, local-only check — never wire real credentials into CI.
 If a future CI job needs live-service validation, that's a deliberate,

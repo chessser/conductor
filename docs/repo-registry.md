@@ -1,9 +1,9 @@
 # Repo registry
 
-A single config file — `.forge/config.yml` (project-local) or
-`~/.config/forge/repos.yml` (machine-wide fallback) — lists every
+A single config file — `.conductor/config.yml` (project-local) or
+`~/.config/conductor/repos.yml` (machine-wide fallback) — lists every
 GitLab/GitHub repo this install is aware of. See `src/lib/config.ts` for
-the loader and `.forge/config.example.yml` for a filled-in example.
+the loader and `.conductor/config.example.yml` for a filled-in example.
 
 ```yaml
 repos:
@@ -21,7 +21,7 @@ repos:
 jira:
   base_url: https://yourcompany.atlassian.net
   project_key: PROJ
-  jql: 'project = PROJ AND labels in ("forge-task", "forge-ordered-task")'
+  jql: 'project = PROJ AND labels in ("conductor-task", "conductor-ordered-task")'
 
 cost:
   daily_ceiling_usd: 25
@@ -35,5 +35,5 @@ one-line config change, not a code change.
 
 Resolution order (`resolveConfigPath` in `src/lib/config.ts`):
 1. An explicit `--config <path>` flag, if a command supports one.
-2. `./.forge/config.yml` (project-local).
-3. `~/.config/forge/repos.yml` (machine-wide).
+2. `./.conductor/config.yml` (project-local).
+3. `~/.config/conductor/repos.yml` (machine-wide).

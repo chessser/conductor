@@ -9,7 +9,7 @@ export function registerReady(program: Command): void {
     .action(() => {
       const tasks = loadTaskIndex(defaultTaskIndexPath());
       if (tasks.size === 0) {
-        console.log('No tasks in the local index yet — run `forge sync` first.');
+        console.log('No tasks in the local index yet — run `conductor sync` first.');
         return;
       }
 

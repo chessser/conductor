@@ -1,4 +1,4 @@
-import type { AgentType, DispatchMode, ForgeTask, HitlGate, IssueType, TaskStatus } from '../../types/task.ts';
+import type { AgentType, DispatchMode, ConductorTask, HitlGate, IssueType, TaskStatus } from '../../types/task.ts';
 
 const STATUS_LABEL_PREFIX = 'status/';
 const AGENT_TYPE_LABEL_PREFIX = 'agent-type/';
@@ -18,7 +18,7 @@ const AGENT_TYPES: readonly AgentType[] = ['claude'];
 const DISPATCH_MODES: readonly DispatchMode[] = ['background', 'foreground'];
 const HITL_GATES: readonly HitlGate[] = ['none', 'design', 'mr-approval'];
 
-const ISSUE_TYPE_NAMES: readonly IssueType[] = ['Forge Request', 'Forge Task', 'Forge Ordered Task'];
+const ISSUE_TYPE_NAMES: readonly IssueType[] = ['Conductor Request', 'Conductor Task', 'Conductor Ordered Task'];
 
 /** Minimal shape of a Jira Cloud REST v3 issue this app reads. Extra fields are ignored. */
 export interface JiraIssueJson {
@@ -67,12 +67,12 @@ function dependsOnFromLinks(links: JiraIssueJson['fields']['issuelinks']): strin
  * integration that's meaningfully testable without a live/fake server.
  * See docs/testing.md.
  */
-export function mapJiraIssueToTask(issue: JiraIssueJson): ForgeTask {
+export function mapJiraIssueToTask(issue: JiraIssueJson): ConductorTask {
   const labels = issue.fields.labels ?? [];
   const issueTypeName = issue.fields.issuetype?.name;
   const issueType: IssueType = ISSUE_TYPE_NAMES.includes(issueTypeName as IssueType)
     ? (issueTypeName as IssueType)
-    : 'Forge Request';
+    : 'Conductor Request';
 
   const agentType = labelValue(labels, AGENT_TYPE_LABEL_PREFIX, AGENT_TYPES);
   const mode = labelValue(labels, MODE_LABEL_PREFIX, DISPATCH_MODES);

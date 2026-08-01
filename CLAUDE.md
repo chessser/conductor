@@ -6,7 +6,7 @@ for the full design; this file is the practical reference.
 
 ## This is a skeleton, not a working tool yet
 
-Every `forge` command currently throws "not implemented yet" (see
+Every `conductor` command currently throws "not implemented yet" (see
 `src/lib/not-implemented.ts`). Do not stub around that by making a command
 silently no-op or return fake data to look done — either implement it for
 real against a real Jira/GitLab/GitHub/Bedrock sandbox, or leave it
@@ -30,7 +30,7 @@ gh pr create --title "..." --body "..."
 
 See [docs/human-in-the-loop.md](docs/human-in-the-loop.md) in full, but the
 short version: Jira decomposition, `status/ready`, the optional design gate,
-and MR/PR approval are all points where a human must act. **`forge mr-poll`
+and MR/PR approval are all points where a human must act. **`conductor mr-poll`
 must never call a merge endpoint, under any flag or configuration.** If a
 task asks you to add auto-merge or auto-retry-on-red-CI, stop and confirm
 with the user explicitly before writing that code — this was a hard-learned
