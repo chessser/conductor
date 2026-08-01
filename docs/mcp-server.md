@@ -80,6 +80,17 @@ calls happen inside one Claude Code conversation. You see the proposal
 don't. The separation exists so a write is never a single, un-previewable
 tool call.
 
+## The generated schema
+
+`npm run build:schema` produces `dist/conductor-schema.json` — every tool
+above as JSON Schema, generated from `src/types/mcp-schema.ts` so it can't
+drift from the types. Claude Code doesn't need it (MCP discovers tools at
+runtime), but programmatic clients like
+[chess-board](https://github.com/chessser/chess-board) do, to validate
+inputs and generate typed calls before making one. See
+[schema-contract.md](schema-contract.md) for what it guarantees and how it's
+versioned.
+
 ## Guardrails
 
 These are enforced in `src/mcp/write-guard.ts`, not left to tool

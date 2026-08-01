@@ -30,6 +30,7 @@ scoped to projects your team has actually declared. See
 ## Documentation
 
 - [docs/mcp-server.md](docs/mcp-server.md) — the MCP tool reference and guardrail policy
+- [docs/schema-contract.md](docs/schema-contract.md) — the generated, versioned tool contract programmatic clients build against
 - [docs/how-it-works.md](docs/how-it-works.md) — the full lifecycle: install, credentials, what runs on each command, how the knowledge graph forms
 - [docs/architecture.md](docs/architecture.md) — system overview and core principles
 - [docs/jira-structure.md](docs/jira-structure.md) — issue types, the intake form, labels/flags

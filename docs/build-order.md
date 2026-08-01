@@ -29,9 +29,16 @@ and mergeable on its own before the next one starts.
    `.conductor/config.yml` repo registry (`conductor sync`/`conductor ready`)
    — predates the MCP pivot, still used for the local task index.
 
+5. **The generated schema contract** (`npm run build:schema` →
+   `dist/conductor-schema.json`, exported from `package.json`). Lets
+   programmatic clients — [chess-board](https://github.com/chessser/chess-board),
+   the TUI — validate and generate typed calls against Conductor without
+   hardcoding tool shapes. See [schema-contract.md](schema-contract.md) and
+   [SCHEMA_CHANGELOG.md](../SCHEMA_CHANGELOG.md).
+
 ## Not done yet
 
-5. **Background dispatch tools** (`task_search_ready`,
+6. **Background dispatch tools** (`task_search_ready`,
    `task_record_dispatch`, `task_list_dispatched`, `task_record_complete`)
    and the `dispatch-ready` skill. Design is written —
    [background-dispatch.md](background-dispatch.md) — implementation
@@ -42,13 +49,23 @@ and mergeable on its own before the next one starts.
    background-agent/worktree-isolation primitives do the actual
    spawning — Conductor only records what was started.
 
-6. **GitLab/GitHub MR tools.** `ScmClient` (`src/lib/providers/scm.ts`) is
+7. **The GitHub Issues backend.** The `github_*` tools are already in the
+   published schema (see [SCHEMA_CHANGELOG.md](../SCHEMA_CHANGELOG.md)), so
+   clients can be built against their final shape, but nothing implements
+   them yet — they're declared, not working. Needs: an
+   `IssueTrackerClient` interface extracted from `JiraClient`, a
+   `GitHubIssuesClient` implementing it, a mapper mirroring
+   `jira-mapping.ts`'s label conventions, `github_repos[]` in the
+   `kg-source` schema, and a registry routing a project key to the right
+   backend. Same guardrails as Jira, no exceptions.
+
+8. **GitLab/GitHub MR tools.** `ScmClient` (`src/lib/providers/scm.ts`) is
    still an interface only. The natural next addition: `mr_list`,
    `mr_get`, and guarded `mr_propose_comment`/`mr_confirm_write` following
    the exact same shape as the Jira write tools — **never** a merge tool,
    per [human-in-the-loop.md](human-in-the-loop.md).
 
-7. **A real knowledge-graph store**, if `kg-source` ever outgrows
+9. **A real knowledge-graph store**, if `kg-source` ever outgrows
    "reparse the whole directory on every MCP tool call." See
    [knowledge-graph.md](knowledge-graph.md) —
    [Graphiti](https://github.com/getzep/graphiti) is the leading
@@ -56,7 +73,7 @@ and mergeable on its own before the next one starts.
    queries), not a generic graph DB. Don't build this speculatively;
    build it when reparsing actually becomes slow.
 
-8. **Extending `conductor kg validate`** to also validate
+10. **Extending `conductor kg validate`** to also validate
    `permissions_needed[]` against live AWS/GitLab/GitHub permissions
    (rather than just documenting intent) would be a deliberate future
    decision, not a default — see

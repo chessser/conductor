@@ -26,6 +26,22 @@ which hasn't been needed at this project's current scale. Do not stub
 around that by making a command silently no-op or return fake data to
 look done — either implement it for real, or leave it throwing.
 
+## The MCP schema is generated, not hand-written
+
+`dist/conductor-schema.json` is build output
+([docs/schema-contract.md](docs/schema-contract.md)) — never edit it. Change
+`src/types/mcp-schema.ts` and re-run `npm run build:schema`.
+`src/lib/schema-generator.test.ts` asserts the guardrails structurally (no
+delete tool, every write split into propose+confirm, status enums matching
+`TaskStatus`), so those tests failing means a real invariant broke, not that
+the test needs updating.
+
+A tool declared in the schema but not implemented — the `github_*` and
+`task_*` tools today — must be recorded as such in
+[SCHEMA_CHANGELOG.md](SCHEMA_CHANGELOG.md) and left to fail honestly at
+runtime. Do not make one return fake or empty data to look implemented; same
+rule as `kg update`/`kg summary`/`context` above.
+
 ## Never commit directly to `main`
 
 Every change goes through a feature branch + PR, no exceptions, including

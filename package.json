@@ -8,11 +8,17 @@
   "bin": {
     "conductor": "./dist/cli.js"
   },
+  "exports": {
+    ".": "./dist/cli.js",
+    "./schema": "./dist/conductor-schema.json",
+    "./types": "./dist/types/index.d.ts"
+  },
   "engines": {
     "node": ">=22.6.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run build:schema",
+    "build:schema": "tsx src/lib/schema-generator.ts",
     "dev": "tsx src/cli.ts",
     "test": "node --test --experimental-strip-types --test-reporter=spec 'src/**/*.test.ts'",
     "lint": "eslint src",
