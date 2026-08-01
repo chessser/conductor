@@ -84,8 +84,12 @@ daemon and nothing syncs on its own. See
    replaced by exposing the same underlying capabilities (Jira read/write,
    team context) as MCP tools — Claude Code already provides session
    continuity, conversational planning, and tool-calling; duplicating that
-   in a custom chatbot/daemon wasn't worth building. See the design
-   discussion that led here for the full tradeoff analysis.
+   in a custom chatbot/daemon wasn't worth building. This still holds for
+   background/dispatched work: [background-dispatch.md](background-dispatch.md)
+   adds tools that let a Claude Code session record and query what it
+   started, not a Conductor-owned process that starts or supervises agents
+   itself. See the design discussion that led here for the full tradeoff
+   analysis.
 
 6. **Coverage is deliberately split, not uniform.** Pure logic
    (`src/lib/dag.ts`, `src/lib/config.ts`, `src/lib/kg-source.ts`,
@@ -113,5 +117,6 @@ daemon and nothing syncs on its own. See
 | `src/lib/providers/scm.ts` | `ScmClient` interface — GitLab/GitHub integration boundary, not implemented yet |
 | `src/lib/kg-source-schema.ts` / `src/lib/kg-source.ts` | Zod schema + loader/resolver for `.conductor/kg-source/` ([knowledge-graph-source.md](knowledge-graph-source.md)) |
 | `src/lib/kg-validate.ts` | Checks declared MCP-server env vars and binaries against the current machine (`conductor kg validate`) |
+| `src/lib/dispatch.ts` | Pure read/write of `.conductor/dispatched.json` — the local, rebuildable record of what a Claude Code session has started ([background-dispatch.md](background-dispatch.md)) |
 | `src/types/*.ts` | Shared types: `ConductorTask`, `RepoConfig`, `KnowledgeGraphSource`, label/status enums |
 | `templates/*` | Repeatable-task prompt + parameter-schema definitions |

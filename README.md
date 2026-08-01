@@ -39,6 +39,7 @@ scoped to projects your team has actually declared. See
 - [docs/task-types.md](docs/task-types.md) — repeatable tasks vs. ordered (DAG) tasks
 - [docs/cost-and-concurrency.md](docs/cost-and-concurrency.md) — where cost actually lives now
 - [docs/human-in-the-loop.md](docs/human-in-the-loop.md) — every gate, explicitly
+- [docs/background-dispatch.md](docs/background-dispatch.md) — design for handing scoped work to a background Claude Code session, without a bespoke dispatcher
 - [docs/build-order.md](docs/build-order.md) — what's done, what's next, what was abandoned
 - [docs/testing.md](docs/testing.md) — fake-server CI testing + optional free Jira sandbox
 - [templates/README.md](templates/README.md) — the repeatable-task template format

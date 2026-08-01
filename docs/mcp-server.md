@@ -115,6 +115,15 @@ before asking Claude to confirm it.
 
 ## What's not here yet
 
+- **Background dispatch tools** (`task_search_ready`,
+  `task_record_dispatch`, `task_list_dispatched`, `task_record_complete`)
+  — design written, not implemented. See
+  [background-dispatch.md](background-dispatch.md). These don't add a new
+  category of Jira write; `task_record_dispatch`/`task_record_complete`
+  write only to a local `.conductor/dispatched.json`, so they skip the
+  propose/confirm flow deliberately (that mechanism guards remote/shared
+  risk, which local state doesn't carry) — any Jira status transition
+  still chains into the existing `jira_propose_status_change` tool.
 - **GitLab/GitHub MR tools.** `ScmClient` (`src/lib/providers/scm.ts`) is
   still just an interface — no implementation, no MCP tools for it yet.
   "Interact with MRs" (checking status, commenting) is the natural next
