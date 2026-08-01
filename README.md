@@ -4,12 +4,14 @@ A Jira-driven agentic orchestrator: turns Jira issues into agent-executed
 changes across GitLab and GitHub repos, backed by a locally-rebuilt
 knowledge graph, with human-gated dispatch and merge review at every step.
 
-**Status: project skeleton.** This repo has the intended architecture,
-types, CLI surface, and pure logic (DAG resolution, config parsing) laid
-out and tested, but no live Jira/GitLab/GitHub/Bedrock integration yet —
-every `forge` command currently throws "not implemented yet" with a
-pointer to the doc describing what it should do. See [docs/build-order.md](docs/build-order.md)
-for the intended implementation sequence.
+**Status: project skeleton, Jira read/write layer working.** `forge sync`
+and `forge ready` are real — the Jira REST client is implemented and
+verified in CI against an in-repo fake Jira server (no live account or
+cost required, see [docs/testing.md](docs/testing.md)). GitLab/GitHub and
+Bedrock integration are not built yet — those commands still throw "not
+implemented yet" with a pointer to the doc describing what they should do.
+See [docs/build-order.md](docs/build-order.md) for the implementation
+sequence and what's done so far.
 
 ## Why this exists
 
@@ -29,6 +31,7 @@ and merges. Nothing merges itself. See [docs/human-in-the-loop.md](docs/human-in
 - [docs/cost-and-concurrency.md](docs/cost-and-concurrency.md) — Bedrock usage tracking and dispatch caps
 - [docs/human-in-the-loop.md](docs/human-in-the-loop.md) — every gate, explicitly
 - [docs/build-order.md](docs/build-order.md) — suggested implementation sequence
+- [docs/testing.md](docs/testing.md) — fake-server CI testing + optional free Jira sandbox
 - [templates/README.md](templates/README.md) — the repeatable-task template format
 
 ## CLI
@@ -47,18 +50,24 @@ forge status                   # dashboard: in-progress/review/blocked, cost so 
 forge mr-poll                  # poll open MRs/PRs, flip Jira status — never merges
 ```
 
-## Getting started (once integrations are implemented)
+## Getting started
 
 ```bash
 git clone https://github.com/chessser/task-forge.git
 cd task-forge
 npm install
 cp .forge/config.example.yml .forge/config.yml   # edit: your repos, Jira JQL, cost ceilings
+cp .env.example .env                              # JIRA_EMAIL + JIRA_API_TOKEN, see docs/testing.md
 npm run build
 npm link                                          # or: node dist/cli.js
 forge sync
 forge ready
 ```
+
+`forge sync`/`forge ready` work against any real Jira Cloud site,
+including a free-tier one — see [docs/testing.md](docs/testing.md).
+GitLab/GitHub, the knowledge graph, and agent dispatch (`forge pair`/
+`forge run`/`forge mr-poll`/`forge triage`) are still skeleton-only.
 
 ## Development
 
@@ -73,15 +82,16 @@ npm run dev -- ready   # run the CLI from source via tsx, no build step
 ### Testing philosophy
 
 Pure logic — DAG/dependency resolution (`src/lib/dag.ts`), config parsing
-(`src/lib/config.ts`), label-gate checks (`src/types/task.ts`) — is unit
-tested exhaustively with Node's built-in `node:test`, no external test
-framework, matching the tests already in this repo. The Jira/GitLab/GitHub/
-Bedrock integration layer (`src/lib/providers/*`, and the command
-implementations once they exist) is intentionally **not** meant to be
-covered by mock-heavy unit tests — validate those against a real sandbox
-Jira project/repo instead. Don't add tests that mock away the entire
-surface just to hit a coverage number; that proves nothing and this repo
-would rather have an honest gap than a fake green check.
+(`src/lib/config.ts`), label-gate checks (`src/types/task.ts`), Jira JSON
+mapping (`src/lib/providers/jira-mapping.ts`) — is unit tested exhaustively
+with Node's built-in `node:test`, no external test framework. The HTTP
+integration layer (`src/lib/providers/jira.ts`) is verified against an
+in-repo fake server (`src/lib/providers/jira.fake-server.ts`), not mocked —
+see [docs/testing.md](docs/testing.md) for why that distinction matters and
+how to add the same pattern for GitLab/GitHub. Don't add tests that mock
+away the client under test just to hit a coverage number; that proves
+nothing and this repo would rather have an honest gap than a fake green
+check.
 
 ## License
 

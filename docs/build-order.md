@@ -4,14 +4,19 @@ This is the intended implementation sequence — each step should be usable
 and mergeable on its own before the next one starts.
 
 1. **`forge sync`** against a real Jira project — pure Jira→local-index
-   mapping (`src/lib/providers/jira.ts`'s `JiraClient.search`, wired into a
-   new `src/lib/task-index.ts`). Unit test the mapping function itself
-   (Jira issue JSON → `ForgeTask`) with fixture data; the live API call
-   stays integration-tested only.
+   mapping (`src/lib/providers/jira-mapping.ts`'s `mapJiraIssueToTask`, the
+   REST client in `src/lib/providers/jira.ts`, and `src/lib/task-index.ts`).
+   **Done** — the mapping function is unit tested against fixtures, and the
+   REST client is integration-tested against an in-repo fake Jira server
+   (`src/lib/providers/jira.fake-server.ts`) so its request/response
+   handling is verified in CI at zero cost. See
+   [docs/testing.md](testing.md) for that approach and for the optional
+   free Jira Cloud sandbox for manual/local checks beyond what the fake
+   covers.
 
-2. **Label-gate + DAG-resolution logic** (`forge ready`) — this is already
-   scaffolded and tested in `src/lib/dag.ts` / `src/types/task.ts`. Wire
-   `forge ready` up to read the local task index written by step 1. No
+2. **Label-gate + DAG-resolution logic** (`forge ready`) — **done**. Pure
+   logic tested in `src/lib/dag.ts` / `src/types/task.ts`; `forge ready`
+   reads the local task index written by step 1. No
    live dispatch yet.
 
 3. **Knowledge graph** `kg update` / `kg summary` / `context` against 1–2
