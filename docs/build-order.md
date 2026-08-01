@@ -31,13 +31,24 @@ and mergeable on its own before the next one starts.
 
 ## Not done yet
 
-5. **GitLab/GitHub MR tools.** `ScmClient` (`src/lib/providers/scm.ts`) is
+5. **Background dispatch tools** (`task_search_ready`,
+   `task_record_dispatch`, `task_list_dispatched`, `task_record_complete`)
+   and the `dispatch-ready` skill. Design is written —
+   [background-dispatch.md](background-dispatch.md) — implementation
+   isn't. This is the "deliberate new addition on top of the MCP tools
+   that already exist" flagged in the "explicitly abandoned" section
+   below, now scoped: no daemon, no dispatcher loop, local rebuildable
+   state only (`.conductor/dispatched.json`), Claude Code's own
+   background-agent/worktree-isolation primitives do the actual
+   spawning — Conductor only records what was started.
+
+6. **GitLab/GitHub MR tools.** `ScmClient` (`src/lib/providers/scm.ts`) is
    still an interface only. The natural next addition: `mr_list`,
    `mr_get`, and guarded `mr_propose_comment`/`mr_confirm_write` following
    the exact same shape as the Jira write tools — **never** a merge tool,
    per [human-in-the-loop.md](human-in-the-loop.md).
 
-6. **A real knowledge-graph store**, if `kg-source` ever outgrows
+7. **A real knowledge-graph store**, if `kg-source` ever outgrows
    "reparse the whole directory on every MCP tool call." See
    [knowledge-graph.md](knowledge-graph.md) —
    [Graphiti](https://github.com/getzep/graphiti) is the leading
@@ -45,7 +56,7 @@ and mergeable on its own before the next one starts.
    queries), not a generic graph DB. Don't build this speculatively;
    build it when reparsing actually becomes slow.
 
-7. **Extending `conductor kg validate`** to also validate
+8. **Extending `conductor kg validate`** to also validate
    `permissions_needed[]` against live AWS/GitLab/GitHub permissions
    (rather than just documenting intent) would be a deliberate future
    decision, not a default — see
@@ -64,7 +75,12 @@ removed from the repo, not left as stubs — if autonomous,
 no-human-at-the-keyboard background dispatch is wanted later, design it
 as a deliberate new addition on top of the MCP tools that already exist
 (likely: an MCP tool that hands a scoped task off to a background Claude
-Code session), not a revival of the old command shape.
+Code session), not a revival of the old command shape. See
+[background-dispatch.md](background-dispatch.md) for that design —
+written after comparing this project directly against `orchestration-platform`,
+a sibling project that *did* build a bespoke dispatcher
+(`orca-dispatch.js` + a central `tasks.yml`), to make sure the
+conclusion above still held rather than assuming it did.
 
 ## What not to build
 

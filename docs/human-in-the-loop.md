@@ -36,9 +36,26 @@ to stop and reconsider, not a green light.
    normal git commit/PR — the same GitOps discipline
    ([CLAUDE.md](../CLAUDE.md)) as any other change to this repo.
 
+6. **Conductor never spawns or supervises an agent process itself.**
+   [background-dispatch.md](background-dispatch.md)'s `task_record_dispatch`
+   only records that a Claude Code session already started background
+   work — the tool cannot start one. If a future change proposes giving
+   Conductor a way to launch or manage agent processes directly, that's
+   the same shape as the abandoned `pair`/`run`/`mr-poll` dispatcher
+   (build-order.md's "explicitly abandoned" section) and should be
+   stopped and reconsidered, not built as a natural next step.
+
+Note that gate 6 is a different *kind* of gate than 1–5: those guard
+remote, shared, hard-to-undo Jira writes with propose-then-confirm.
+`task_record_dispatch`/`task_record_complete` write only to a local,
+gitignored, rebuildable file (`.conductor/dispatched.json`) and
+deliberately don't use the propose/confirm token flow — that mechanism
+exists for risk that doesn't apply to local state. Don't read gate 6 as
+license to skip propose/confirm on anything that *does* touch Jira.
+
 If you're extending `src/mcp/server.ts` with new tools (GitLab/GitHub MR
 tools are the obvious next addition, see
-[mcp-server.md](mcp-server.md#whats-not-here-yet)), treat these five gates
+[mcp-server.md](mcp-server.md#whats-not-here-yet)), treat all six gates
 as invariants to preserve, not defaults to work around — a merge tool, if
 one's ever added, must follow the same propose-then-confirm shape and must
 never itself click merge.

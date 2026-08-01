@@ -13,7 +13,12 @@ directly (`conductor pair`/`run`/`mr-poll`/`triage` via the Claude Agent
 SDK); that was deliberately abandoned in favor of exposing capabilities as
 MCP tools for Claude Code to call — see
 [docs/build-order.md](docs/build-order.md)'s "explicitly abandoned"
-section before reviving anything that looks like that shape.
+section before reviving anything that looks like that shape. Background
+task dispatch ([docs/background-dispatch.md](docs/background-dispatch.md))
+is the one deliberate exception to "not an agent dispatcher": it's tools
+that let a Claude Code session record and query what *it* started, not a
+Conductor-owned process that starts or supervises agents — the "no
+daemon, no dispatcher loop" rule still applies in full.
 
 `conductor kg update`/`kg summary`/`context` are not implemented yet (see
 `src/lib/not-implemented.ts`) — they'd build a persistent graph store,
